@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOOS MHRR PRO</title>
+    
+    <!-- CONFIGURACIÓN PWA (APP CELULAR) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/mrtc5V60/moos-logo.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap');
+        body { background-color: #080808; color: #f0f0f0; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card { background: #111; border-radius: 30px; border: 1px solid #222; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        .input-group { background: #000; border-radius: 15px; border: 1px solid #333; padding: 10px 15px; display: flex; align-items: center; }
+        .input-group span { color: #d4af37; font-weight: 900; margin-right: 10px; }
+        .input-group input { background: transparent !important; color: white !important; font-size: 1.5rem !important; font-weight: 700 !important; border: none !important; width: 100%; text-align: right; outline: none; }
+        .btn-material { padding: 10px 4px; text-align: center; font-size: 0.6rem; border-radius: 10px; background: #1a1a1a; border: 1px solid #222; color: #666; transition: 0.3s; text-transform: uppercase; }
+        .btn-material.active { border-color: #d4af37; background: rgba(212,175,55,0.1); color: #d4af37; font-weight: 700; }
+        .toggle-btn { border-radius: 50px; padding: 10px; font-weight: 700; width: 100%; font-size: 0.7rem; border: 1px solid #333; background: #000; color: #555; text-transform: uppercase; }
+        .toggle-btn.active { border-color: #d4af37; color: #d4af37; background: #1a1a1a; }
+        
+        /* Resultados Triple Columna (Estilo Original) */
+        .results-frame { background: #000; border-radius: 20px; padding: 15px; border: 1px solid #d4af3733; display: grid; grid-template-cols: 1fr 1fr 1.2fr; gap: 10px; align-items: center; }
+        .res-label { font-size: 0.5rem; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        
+        .btn-main { background: linear-gradient(90deg, #b8860b, #d4af37); color: #000; padding: 18px; border-radius: 15px; width: 100%; font-weight: 900; text-transform: uppercase; cursor: pointer; border: none; }
+        .admin-input { background: #111; color: white; border: 1px solid #444; font-size: 0.7rem; padding: 8px; border-radius: 8px; outline: none; width: 100%; }
+        .history-item { background: #050505; border-left: 5px solid #333; padding: 15px; border-radius: 15px; margin-top: 15px; }
+        .btn-reabrir { background: #d4af37; color: #000; font-size: 9px; font-weight: 900; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <div class="mb-4 text-center">
+        <img src="https://i.ibb.co/mrtc5V60/moos-logo.png" class="w-16 h-16 rounded-full border-2 border-gold mx-auto shadow-lg">
+        <h1 class="text-xl font-black text-white italic uppercase mt-2">MOOS MHRR <span class="text-yellow-600">PRO</span></h1>
+        <div id="display-folio" class="text-[10px] text-yellow-600 font-bold tracking-widest mt-1"></div>
+    </div>
+
+    <div class="card p-5 w-full max-w-md space-y-4">
+        <input type="text" id="cliente" placeholder="NOMBRE DEL CLIENTE" class="w-full bg-transparent border-b border-gray-800 text-center text-sm font-bold p-2 text-yellow-600 outline-none uppercase">
+
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="setMaterial('alfombra_mod', 'Alfombra Modular')" class="btn-material active" id="btn-alfombra_mod">Alfombra Modular</button>
+            <button onclick="setMaterial('alfombra_rollo', 'Alfombra en Rollo')" class="btn-material" id="btn-alfombra_rollo">Alfombra Rollo</button>
+            <button onclick="setMaterial('lvt', 'Piso LVT')" class="btn-material" id="btn-lvt">Piso LVT</button>
+            <button onclick="setMaterial('spc', 'Piso SPC')" class="btn-material" id="btn-spc">Piso SPC</button>
+            <button onclick="setMaterial('antiestatico', 'Antiestático')" class="btn-material" id="btn-antiestatico">Antiestático</button>
+            <button onclick="setMaterial('acustico', 'Piso Acústico')" class="btn-material" id="btn-acustico">Piso Acústico</button>
+            <button onclick="setMaterial('zoclo', 'Zoclo Vinílico')" class="btn-material" id="btn-zoclo">Zoclo Vinílico</button>
+            <button onclick="setMaterial('moldura', 'Moldura')" class="btn-material" id="btn-moldura">Moldura</button>
+        </div>
+
+        <div id="div-pegado" class="flex gap-2">
+            <button onclick="setPegado('BOSTIK')" id="p-bostik" class="toggle-btn active">Bostik</button>
+            <button onclick="setPegado('ROBBER')" id="p-robber" class="toggle-btn">Robber</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="input-group"><span id="label-unit">m²</span><input type="number" id="metros" placeholder="0" oninput="calcular()"></div>
+            <div class="input-group"><span>$</span><input type="number" id="precio" placeholder="0" oninput="calcular()"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="input-group"><span>$</span><input type="number" id="anticipo" placeholder="ANTICIPO" oninput="calcular()" class="text-yellow-600 font-bold"></div>
+            <button onclick="toggleFactura()" id="btn-iva" class="toggle-btn text-[0.6rem] uppercase tracking-widest">+ IVA 16%</button>
+        </div>
+
+        <textarea id="notas" placeholder="NOTAS ADICIONALES..." class="admin-input h-12 text-[9px] uppercase"></textarea>
+
+        <div class="results-frame">
+            <div class="text-center border-r border-gray-800">
+                <span class="res-label text-blue-500" id="label-pegado">BOSTIK</span>
+                <span class="text-blue-500 font-black text-xl" id="res-cubetas">0</span> <span class="text-[8px] text-blue-300">LTS</span>
+            </div>
+            <div class="text-center border-r border-gray-800">
+                <span class="res-label text-gray-400" id="label-bulto">CAJAS</span>
+                <span class="text-white font-black text-xl" id="res-bultos">0</span> <span class="text-[8px] text-gray-500" id="label-bulto-unit">CJS</span>
+            </div>
+            <div class="text-right pl-1">
+                <span class="res-label text-gold-500">SALDO</span>
+                <span class="text-white font-black text-lg" id="res-saldo">$0</span>
+            </div>
+        </div>
+
+        <button onclick="generarPDF()" class="btn-main">COTIZACIÓN</button>
+
+        <!-- BUSCADOR E HISTORIAL SIEMPRE VISIBLE -->
+        <div class="mt-8 p-4 bg-black rounded-2xl border border-gray-800">
+            <h2 class="text-[10px] font-black text-yellow-600 uppercase text-center mb-4 tracking-widest">Base de Datos Personal</h2>
+            <input type="text" id="buscador" oninput="buscarCotizacion()" placeholder="BUSCAR POR NOMBRE O FOLIO..." class="w-full bg-[#111] border border-gray-800 rounded-xl p-3 text-xs text-center uppercase text-white mb-4 outline-none">
+            <div id="historial" class="space-y-4 max-h-[400px] overflow-y-auto"></div>
+        </div>
+    </div>
+
+<script>
+    let matNom = 'Alfombra Modular', matId = 'alfombra_mod', pegado = 'BOSTIK', factura = false, totalVal = 0, saldoVal = 0, currentFolio = "", latasVal = 0, bultosVal = 0, bultoTipo = "Cajas";
+    let historial = JSON.parse(localStorage.getItem('moos_pwa_db')) || [];
+
+    const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(v);
+
+    function setFolio() {
+        const date = new Date();
+        const d = date.getDate().toString().padStart(2, '0');
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        const y = date.getFullYear().toString().substr(-2);
+        currentFolio = `MM${d}${m}${y}-${historial.length + 1}`;
+        document.getElementById('display-folio').innerText = "Folio: " + currentFolio;
+    }
+
+    function setMaterial(id, nombre) {
+        matId = id; matNom = nombre;
+        document.querySelectorAll('.btn-material').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-'+id).classList.add('active');
+        const isLinear = (id === 'zoclo' || id === 'moldura');
+        document.getElementById('label-unit').innerText = isLinear ? 'ml' : 'm²';
+        document.getElementById('label-pegado').innerText = isLinear ? 'SILER' : (id==='spc'?'CLICK':pegado);
+        calcular();
+    }
+
+    function setPegado(tipo) {
+        pegado = tipo;
+        document.getElementById('p-bostik').classList.toggle('active', tipo==='BOSTIK');
+        document.getElementById('p-robber').classList.toggle('active', tipo==='ROBBER');
+        if(matId !== 'zoclo' && matId !== 'spc') document.getElementById('label-pegado').innerText = tipo;
+        calcular();
+    }
+
+    function toggleFactura() {
+        factura = !factura;
+        document.getElementById('btn-iva').classList.toggle('active', factura);
+        calcular();
+    }
+
+    function calcular() {
+        const m = parseFloat(document.getElementById('metros').value) || 0;
+        const p = parseFloat(document.getElementById('precio').value) || 0;
+        const ant = parseFloat(document.getElementById('anticipo').value) || 0;
+        
+        let rend = (matId === 'zoclo' || matId === 'moldura') ? 45 : (pegado === 'BOSTIK' ? 60 : 35);
+        if (matId === 'spc') rend = 0;
+        latasVal = rend > 0 ? Math.ceil(m / rend) : 0;
+        document.getElementById('res-cubetas').innerText = latasVal;
+
+        if(matId === 'alfombra_rollo') { bultosVal = Math.ceil(m/100); bultoTipo = "Rollos"; }
+        else if(matId === 'zoclo' || matId === 'moldura') { bultosVal = Math.ceil(m/2.4); bultoTipo = "Tiras"; }
+        else { bultosVal = Math.ceil(m/5); bultoTipo = "Cajas"; }
+        
+        document.getElementById('res-bultos').innerText = bultosVal;
+        document.getElementById('label-bulto').innerText = bultoTipo;
+        document.getElementById('label-bulto-unit').innerText = bultoTipo.substring(0,3).toUpperCase();
+
+        totalVal = m * p * (factura ? 1.16 : 1);
+        saldoVal = totalVal - ant;
+        document.getElementById('res-saldo').innerText = fmt(saldoVal);
+    }
+
+    function generarPDF(reabrirData = null) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'letter');
+        const d = reabrirData || {
+            cliente: (document.getElementById('cliente').value || "CLIENTE").toUpperCase(),
+            folio: currentFolio, matNom, metros: document.getElementById('metros').value || 0,
+            unit: document.getElementById('label-unit').innerText, pegado: document.getElementById('label-pegado').innerText,
+            latas: latasVal, total: totalVal, anticipo: parseFloat(document.getElementById('anticipo').value) || 0,
+            saldo: saldoVal, factura, notas: document.getElementById('notas').value.toUpperCase(),
+            fecha: new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' }), 
+            id_save: Date.now(), status: 'pendiente',
+            bultos: bultosVal, bultoTipo: bultoTipo
+        };
+
+        // PDF CARTA (DISTRIBUCIÓN REPARADA)
+        doc.setFillColor(20, 20, 20); doc.rect(0, 0, 216, 50, 'F');
+        doc.setTextColor(212, 175, 55); doc.setFontSize(36); doc.setFont("helvetica", "bold");
+        doc.text("MOOS MHRR", 20, 25);
+        doc.setFontSize(11); doc.setTextColor(255, 255, 255); doc.text("INSTALACIÓN PROFESIONAL DE PISOS", 20, 35);
+        doc.setFillColor(212, 175, 55); doc.rect(150, 15, 46, 25, 'F');
+        doc.setTextColor(0); doc.setFontSize(12); doc.text(`${d.folio}`, 173, 26, {align:"center"});
+        doc.setFontSize(9); doc.text(`${d.fecha}`, 173, 33, {align:"center"});
+
+        doc.setTextColor(0); doc.setFontSize(22); doc.text(`ATENCIÓN A: ${d.cliente}`, 20, 72);
+        doc.setDrawColor(212, 175, 55); doc.setLineWidth(1.2); doc.line(20, 80, 196, 80);
+
+        doc.setFontSize(16); doc.setTextColor(30, 30, 30);
+        let y = 100;
+        doc.setFont("helvetica", "bold"); doc.text("SERVICIO:", 20, y); doc.setFont("helvetica", "normal"); doc.text(`${d.matNom}`, 65, y);
+        y += 15;
+        doc.setFont("helvetica", "bold"); doc.text("CANTIDAD:", 20, y); doc.setFont("helvetica", "normal"); doc.text(`${d.metros} ${d.unit} (${d.bultos} ${d.bultoTipo})`, 65, y);
+        y += 15;
+        doc.setFont("helvetica", "bold"); doc.text("ADHESIVO:", 20, y); doc.setFont("helvetica", "normal"); doc.text(`${d.pegado} (${d.latas} Latas)`, 65, y);
+        y += 15;
+        doc.setFont("helvetica", "bold"); doc.text("ESTATUS:", 20, y);
+        doc.setTextColor(d.status==='hecho'?34:d.status==='cerrado'?59:100, d.status==='hecho'?197:d.status==='cerrado'?130:100, d.status==='hecho'?94:d.status==='cerrado'?246:100);
+        doc.text(`${d.status.toUpperCase()}`, 65, y);
+
+        y = 168; 
+        doc.setFillColor(245, 245, 245); doc.rect(20, y, 176, 50, 'F');
+        doc.setTextColor(0, 0, 0); doc.setFontSize(13); doc.setFont("helvetica", "bold");
+        doc.text("DESGLOSE ECONÓMICO:", 30, y + 12);
+        doc.setFontSize(12); doc.setFont("helvetica", "normal");
+        doc.text("Mano de Obra:", 30, y + 24); doc.text(fmt(d.total), 186, y + 24, {align:"right"});
+        doc.text("Anticipo:", 30, y + 32); doc.setTextColor(34, 197, 94); doc.text(`- ${fmt(d.anticipo)}`, 186, y + 32, {align:"right"});
+        doc.setTextColor(184, 134, 11); doc.setFontSize(26); doc.setFont("helvetica", "bold");
+        doc.text("SALDO:", 30, y + 45); doc.text(`${fmt(d.saldo)}`, 186, y + 45, {align:"right"});
+
+        y = 224;
+        doc.setTextColor(100, 100, 100); doc.setFontSize(10);
+        doc.text(d.factura ? "* INCLUYE IVA (16%)" : "* PRECIO NETO SIN IVA", 20, y);
+        if(d.notas) { doc.setTextColor(0, 0, 0); doc.text(`NOTAS: ${d.notas}`, 20, y + 10); }
+
+        doc.setFillColor(59, 89, 152); doc.rect(58, 240, 100, 10, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.text("VER GALERÍA DE TRABAJOS", 108, 246.5, {align:"center"});
+        doc.link(58, 240, 100, 10, {url: "https://www.facebook.com/share/17X3N5j2GF/?mibextid=wwXIfr"});
+
+        doc.setFillColor(15, 15, 15); doc.rect(0, 260, 216, 30, 'F');
+        doc.setTextColor(212, 175, 55); doc.setFontSize(16); doc.text("ABRAHAM MORALES HERNÁNDEZ - 5525544503", 108, 275, { align: "center" });
+
+        doc.save(`MOOS_${d.folio}.pdf`);
+
+        if(!reabrirData) {
+            historial.push(d);
+            localStorage.setItem('moos_pwa_db', JSON.stringify(historial));
+            setFolio();
+            buscarCotizacion();
+        }
+    }
+
+    function updateData(index, key, val) {
+        historial[index][key] = val;
+        localStorage.setItem('moos_pwa_db', JSON.stringify(historial));
+        buscarCotizacion();
+    }
+
+    function buscarCotizacion() {
+        const query = document.getElementById('buscador').value.toLowerCase();
+        const filtrados = historial.filter(c => c.cliente.toLowerCase().includes(query) || c.folio.toLowerCase().includes(query));
+        document.getElementById('historial').innerHTML = filtrados.reverse().map((c, i) => `
+            <div class="history-item" style="border-left-color: ${c.status === 'hecho' ? '#22c55e' : c.status === 'cerrado' ? '#3b82f6' : '#666'}">
+                <div class="flex justify-between items-center">
+                    <div><p class="text-white font-bold text-sm uppercase">${c.cliente}</p><p class="text-[9px] text-gray-500 uppercase">${c.folio}</p></div>
+                    <div class="text-right"><p class="text-yellow-600 font-black">${fmt(c.saldo)}</p>
+                    <button onclick="reabrirCotizacion(${c.id_save})" class="btn-reabrir">REABRIR PDF</button></div>
+                </div>
+                <div class="grid grid-cols-3 gap-1 mt-4">
+                    <select onchange="updateData(${historial.length - 1 - i}, 'status', this.value)" class="admin-input text-[8px]"><option value="pendiente" ${c.status === 'pendiente' ? 'selected' : ''}>PENDIENTE</option><option value="cerrado" ${c.status === 'cerrado' ? 'selected' : ''}>CERRADO</option><option value="hecho" ${c.status === 'hecho' ? 'selected' : ''}>HECHO</option></select>
+                    <input type="date" value="${c.inicio || ''}" onchange="updateData(${historial.length - 1 - i}, 'inicio', this.value)" class="admin-input text-[8px]"><input type="date" value="${c.fin || ''}" onchange="updateData(${historial.length - 1 - i}, 'fin', this.value)" class="admin-input text-[8px]">
+                </div>
+            </div>`).join('');
+    }
+
+    function reabrirCotizacion(id) {
+        const data = historial.find(c => c.id_save === id);
+        if(data) generarPDF(data);
+    }
+
+    setFolio();
+    buscarCotizacion();
+</script>
+</body>
+</html>
